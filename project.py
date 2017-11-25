@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, jsonify, url_for, flash
+from functools import wraps
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, User, Category, Item 
@@ -197,6 +198,15 @@ def gdisconnect():
   return redirect(url_for('showCatalog'))
 
 
+def login_required(f):
+  @wraps(f)
+  def decorated_function(*args, **kwargs):
+    if 'username' in login_session:
+      return f(*args, **kwargs)
+    else:
+      flash("Please login first before proceeding with the action.")
+      return redirect('/login')
+  return decorated_function
 
 @app.route('/catalog/JSON')
 def catalogJSON():
@@ -243,9 +253,8 @@ def showItem(category_name, item_title):
 
 # Create a new item
 @app.route('/catalog/new/', methods=['GET', 'POST'])
+@login_required
 def newItem():
-  if 'username' not in login_session:
-    return redirect('/login')
   if request.method == 'POST':
     category_name = request.form['category_name'].strip()
     if not category_name:
@@ -274,10 +283,8 @@ def newItem():
 
 # Edit an item
 @app.route('/catalog/<category_name>/<item_title>/edit', methods=['GET', 'POST'])
+@login_required
 def editItem(category_name, item_title):
-  if 'username' not in login_session:
-    return redirect('/login')
-    
   itemToEdit = session.query(Item).filter_by(title=item_title).one()
   if login_session['user_id'] != itemToEdit.user_id:
       return "<script>function myFunction() {alert('You are not authorized to edit this item');}</script><body onload='myFunction()'>"
@@ -304,13 +311,10 @@ def editItem(category_name, item_title):
     categories = session.query(Category).order_by(asc(Category.name))
     return render_template('edititem.html', category=category, item=itemToEdit, categories = categories)
 
-
-
 # Delete an item
 @app.route('/catalog/<category_name>/<item_title>/delete', methods=['GET', 'POST'])
+@login_required
 def deleteItem(category_name, item_title):
-  if 'username' not in login_session:
-    return redirect('/login')
   category = session.query(Category).filter_by(name=category_name).one()
   itemToDelete = session.query(Item).filter_by(title=item_title).one()
   if login_session['user_id'] != itemToDelete.user_id:
