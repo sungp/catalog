@@ -215,8 +215,11 @@ def catalogJSON():
 
 @app.route('/catalog/<item_title>/JSON')
 def itemJSON(item_title):
-  item = session.query(Item).filter_by(title=item_title).one()
-  return jsonify(item.serialize)
+  item = session.query(Item).filter_by(title=item_title).one_or_none()
+  if item:
+    return jsonify(item.serialize)
+  else:
+    return ""
 
 
 # Show all categories 
@@ -233,7 +236,11 @@ def showCatalog():
 # Show category 
 @app.route('/catalog/<category_name>/items/')
 def showCategory(category_name):
-  category = session.query(Category).filter_by(name=category_name).one()
+  category = session.query(Category).filter_by(name=category_name).one_or_none()
+  if not category:
+    flash('The category: %s does not exist' % category_name)
+    return showCatalog()
+
   items = session.query(Item).filter_by(category_name=category_name).all()
   if 'username' not in login_session:
     return render_template('public_category.html', items=items, category=category)
@@ -243,8 +250,12 @@ def showCategory(category_name):
 # Show item 
 @app.route('/catalog/<category_name>/<item_title>/')
 def showItem(category_name, item_title):
-  category = session.query(Category).filter_by(name=category_name).one()
-  item = session.query(Item).filter_by(title=item_title).one()
+  category = session.query(Category).filter_by(name=category_name).one_or_none()
+  item = session.query(Item).filter_by(title=item_title).one_or_none()
+  if not category or not item:
+    flash('The item: %s does not exist' % item_title)
+    return showCategory(category_name)
+
   if 'username' not in login_session:
     return render_template('public_item.html', item=item)
   else:
@@ -285,7 +296,12 @@ def newItem():
 @app.route('/catalog/<category_name>/<item_title>/edit', methods=['GET', 'POST'])
 @login_required
 def editItem(category_name, item_title):
-  itemToEdit = session.query(Item).filter_by(title=item_title).one()
+  category = session.query(Category).filter_by(name=category_name).one_or_none()
+  itemToEdit = session.query(Item).filter_by(title=item_title).one_or_none()
+  if not category or not itemToEdit:
+    flash('The item: %s does not exist' % item_title)
+    return showCategory(category_name)
+
   if login_session['user_id'] != itemToEdit.user_id:
       return "<script>function myFunction() {alert('You are not authorized to edit this item');}</script><body onload='myFunction()'>"
   if request.method == 'POST':
@@ -315,8 +331,12 @@ def editItem(category_name, item_title):
 @app.route('/catalog/<category_name>/<item_title>/delete', methods=['GET', 'POST'])
 @login_required
 def deleteItem(category_name, item_title):
-  category = session.query(Category).filter_by(name=category_name).one()
-  itemToDelete = session.query(Item).filter_by(title=item_title).one()
+  category = session.query(Category).filter_by(name=category_name).one_or_none()
+  itemToDelete = session.query(Item).filter_by(title=item_title).one_or_none()
+  if not category or not itemToDelete:
+    flash('The item: %s does not exist' % item_title)
+    return showCategory(category_name)
+
   if login_session['user_id'] != itemToDelete.user_id:
       return "<script>function myFunction() {alert('You are not authorized to delete this item');}</script><body onload='myFunction()'>"
   if request.method == 'POST':
