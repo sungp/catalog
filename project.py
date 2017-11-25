@@ -203,6 +203,11 @@ def catalogJSON():
   categories = session.query(Category).all()
   return jsonify(categories = [cat.do_serialize(getItems(cat.name)) for cat in categories])
 
+@app.route('/catalog/<item_title>/JSON')
+def itemJSON(item_title):
+  item = session.query(Item).filter_by(title=item_title).one()
+  return jsonify(item.serialize)
+
 
 # Show all categories 
 @app.route('/')
