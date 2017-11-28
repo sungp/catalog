@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 
 Base = declarative_base()
 
+
 class User(Base):
     __tablename__ = 'user'
 
@@ -15,16 +16,18 @@ class User(Base):
     email = Column(String(250), nullable=False)
     picture = Column(String(250))
 
+
 class Category(Base):
     __tablename__ = 'category'
 
     id = Column(Integer, primary_key=True)
     name = Column(String(250), unique=True, nullable=False)
-    def do_serialize(self, items = []):
+
+    def do_serialize(self, items=[]):
         return {
             'id': self.id,
             'name': self.name,
-            'Item': [item.serialize for item in items] 
+            'Item': [item.serialize for item in items]
         }
 
     serialize = property(do_serialize)
