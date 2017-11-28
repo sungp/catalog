@@ -41,10 +41,10 @@ Installing/Running the webserver
 
 1. To install the webserver, simply clone the repository under vagrant
 directory by running following git clone command in vagrant directory 
-```git clone https://github.com/sungp/catalog.git catalog```
+`git clone https://github.com/sungp/catalog.git catalog`
 
 1. cd into newly created catalog directory and run the webserver by running
-following command. ```python project.py```
+following command. `python project.py`
 
 1. Open web browser (i.e. chrome) and navigate to (http://locahost:8000). 
 If everything functioning correctly, it should display catalog web page.
